@@ -1,20 +1,23 @@
 #[macro_use] extern crate rocket;
 
-use rocket::serde::Serialize;
+use diesel::{QueryDsl, RunQueryDsl};
 use rocket_dyn_templates::{context, Template};
-
-#[derive(Serialize)]
-struct Person {
-    name: String,
-    age: i32,
-}
+use RocketPractice::{establish_connection};
+use RocketPractice::models::{User};
+use RocketPractice::schema::users::dsl::users;
+use dotenvy::{dotenv, dotenv_override};
 
 #[get("/")]
 fn index() -> Template {
+    let connection = &mut establish_connection();
+    let results = users.limit(1).load::<User>(connection).expect("Error loading users");
+
     Template::render("index", context! {
-        data: Person { name: String::from("chris"), age: 25 },
+        data: results,
     })
 }
+
+
 
 #[launch]
 fn rocket() -> _ {
